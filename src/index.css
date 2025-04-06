@@ -1,0 +1,133 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 120 30% 25%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 120 30% 25%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 85% 65%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 120 30% 25%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 120 30% 25%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 150 30% 25%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 120 30% 25%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[#121212] text-foreground font-poppins;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-montserrat font-bold;
+  }
+}
+
+@layer components {
+  .hero-text-shadow {
+    text-shadow: 0 0 10px rgba(44, 85, 48, 0.5);
+  }
+
+  .glass-card {
+    @apply bg-opacity-10 backdrop-blur-sm bg-white border border-white/10 shadow-lg;
+  }
+
+  .military-card {
+    @apply bg-[#1A1A1A]/20 backdrop-blur-sm border border-[#333333]/30 shadow-lg;
+  }
+
+  .military-highlight {
+    @apply text-military font-semibold;
+  }
+
+  .nav-link {
+    @apply relative px-3 py-2 text-white/80 hover:text-white transition-colors duration-300 after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-military after:bottom-0 after:left-0 hover:after:w-full after:transition-all after:duration-300;
+  }
+
+  .nav-link.active {
+    @apply text-white after:w-full;
+  }
+
+  .cta-button {
+    @apply bg-military text-white font-bold py-3 px-6 rounded-md hover:bg-military-light transition-colors duration-300 shadow-lg hover:shadow-xl;
+  }
+
+  .secondary-button {
+    @apply bg-[#1A1A1A] text-white font-semibold py-3 px-6 rounded-md hover:bg-[#222222] transition-colors duration-300 shadow-lg hover:shadow-xl;
+  }
+
+  .status-indicator {
+    @apply inline-block w-3 h-3 rounded-full;
+  }
+
+  .status-green {
+    @apply bg-green-500;
+  }
+
+  .status-yellow {
+    @apply bg-yellow-500;
+  }
+
+  .status-red {
+    @apply bg-red-500;
+  }
+
+  .floating-3d-element {
+    @apply animate-float;
+  }
+}
+
+/* Network-style graph background effect */
+.network-bg {
+  background: radial-gradient(circle at center, transparent 0, #121212 100%), 
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 800 800'%3E%3Cg fill='none' stroke='%23333333' stroke-width='1'%3E%3Cpath d='M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63'/%3E%3Cpath d='M-31 229L237 261 390 382 731 737M520 660L309 538 295 764 40 599 295 764 126.5 879.5 40 599 309 538 390 382 731 737M520 660L309 538 295 764 40 599 295 764 126.5 879.5 40 599 309 538 390 382 731 737M520 660L309 538 295 764 40 599 295 764 126.5 879.5 40 599 309 538 390 382 731 737M520 660L309 538 295 764 40 599 295 764 126.5 879.5 40 599 309 538 390 382 731 737M520 660L309 538 295 764 40 599 295 764 126.5 879.5 40 599 309 538 390 382 731 737M520 660L309 538 295 764 40 599 295 764 126.5 879.5 40 599 309 538 390 382 731 737M520 660L309 538 295 764 40 599 295 764 126.5 879.5 40 599 309 538 390 382 731 737'/%3E%3C/g%3E%3Cg fill='%232A3A58'%3E%3Ccircle cx='769' cy='229' r='5'/%3E%3Ccircle cx='539' cy='269' r='5'/%3E%3Ccircle cx='603' cy='493' r='5'/%3E%3Ccircle cx='731' cy='737' r='5'/%3E%3Ccircle cx='520' cy='660' r='5'/%3E%3Ccircle cx='309' cy='538' r='5'/%3E%3Ccircle cx='295' cy='764' r='5'/%3E%3Ccircle cx='40' cy='599' r='5'/%3E%3Ccircle cx='102' cy='382' r='5'/%3E%3Ccircle cx='127' cy='80' r='5'/%3E%3Ccircle cx='370' cy='105' r='5'/%3E%3Ccircle cx='578' cy='42' r='5'/%3E%3Ccircle cx='237' cy='261' r='5'/%3E%3Ccircle cx='390' cy='382' r='5'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: cover;
+  background-position: center;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+

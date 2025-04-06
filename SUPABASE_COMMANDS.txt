@@ -1,0 +1,183 @@
+-- 1. Create user_profiles table
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_type TEXT NOT NULL CHECK (user_type IN ('volunteer', 'family')),
+  full_name TEXT,
+  phone TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own profile" ON user_profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON user_profiles FOR UPDATE USING (auth.uid() = id);
+
+-- 2. Create families table
+CREATE TABLE families (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  martyr_name TEXT NOT NULL,
+  martyr_rank TEXT NOT NULL,
+  martyr_unit TEXT,
+  force_type TEXT NOT NULL CHECK (force_type IN ('Army', 'Navy', 'Air Force', 'CRPF', 'BSF', 'Other')),
+  date_of_martyrdom DATE,
+  relationship_with_martyr TEXT,
+  address JSONB DEFAULT '{"street": "", "city": "", "state": "", "pincode": ""}',
+  contact_details JSONB DEFAULT '{"primaryPhone": "", "alternatePhone": "", "email": ""}',
+  support_status JSONB DEFAULT '{"pensionStatus": "Pending", "housingStatus": "NA", "educationSupport": false, "medicalSupport": false}',
+  last_visited_date DATE,
+  region TEXT,
+  total_children INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'Active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE families ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Families are viewable by all authenticated users" ON families FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Families can update own record" ON families FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Admins can update any family" ON families FOR UPDATE USING (auth.uid() IN (SELECT id FROM auth.users WHERE raw_user_meta_data->>'role' = 'admin'));
+
+-- 3. Create family_members table
+CREATE TABLE family_members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  age INTEGER,
+  relation TEXT NOT NULL,
+  education TEXT,
+  occupation TEXT,
+  education_level TEXT,
+  marital_status TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE family_members ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Family members are viewable by authenticated users" ON family_members FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Family members can be updated by family or admin" ON family_members FOR UPDATE USING (auth.uid() IN (SELECT user_id FROM families WHERE id = family_id) OR auth.uid() IN (SELECT id FROM auth.users WHERE raw_user_meta_data->>'role' = 'admin'));
+
+-- 4. Create volunteers table
+CREATE TABLE volunteers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  phone TEXT,
+  organization TEXT,
+  role TEXT,
+  skills TEXT[] DEFAULT '{}',
+  availability JSONB DEFAULT '{"weekdays": false, "weekends": false, "evenings": false}',
+  joined_date DATE DEFAULT CURRENT_DATE,
+  status TEXT DEFAULT 'Active',
+  total_hours INTEGER DEFAULT 0,
+  regions TEXT[] DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE volunteers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Volunteers are viewable by authenticated users" ON volunteers FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Volunteers can update own record" ON volunteers FOR UPDATE USING (auth.uid() = user_id);
+
+-- 5. Create volunteer_assignments table
+CREATE TABLE volunteer_assignments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  volunteer_id UUID REFERENCES volunteers(id) ON DELETE CASCADE,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  start_date DATE DEFAULT CURRENT_DATE,
+  end_date DATE,
+  status TEXT DEFAULT 'Active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE (volunteer_id, family_id)
+);
+ALTER TABLE volunteer_assignments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Assignments are viewable by authenticated users" ON volunteer_assignments FOR SELECT USING (auth.role() = 'authenticated');
+
+-- 6. Create support_tasks table
+CREATE TABLE support_tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  description TEXT,
+  volunteer_id UUID REFERENCES volunteers(id) ON DELETE SET NULL,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'In Progress', 'Completed', 'Cancelled')),
+  priority TEXT DEFAULT 'Medium' CHECK (priority IN ('Low', 'Medium', 'High', 'Urgent')),
+  due_date DATE,
+  completed_date DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE support_tasks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Tasks are viewable by authenticated users" ON support_tasks FOR SELECT USING (auth.role() = 'authenticated');
+
+-- 7. Create support_history table
+CREATE TABLE support_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  volunteer_id UUID REFERENCES volunteers(id) ON DELETE SET NULL,
+  support_type TEXT NOT NULL,
+  description TEXT,
+  date DATE DEFAULT CURRENT_DATE,
+  hours_spent NUMERIC(5,2) DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE support_history ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Support history is viewable by authenticated users" ON support_history FOR SELECT USING (auth.role() = 'authenticated');
+
+-- 8. Create scholarships table
+CREATE TABLE scholarships (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  description TEXT,
+  eligibility JSONB,
+  benefits JSONB,
+  application_link TEXT,
+  application_process TEXT,
+  deadline DATE,
+  region TEXT,
+  course_levels TEXT[],
+  tags TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE scholarships ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Scholarships are viewable by all authenticated users" ON scholarships FOR SELECT USING (auth.role() = 'authenticated');
+
+-- 9. Insert sample volunteers
+INSERT INTO volunteers (name, email, phone, organization, role, skills, regions, availability)
+VALUES
+  ('Raj Kumar', 'raj.kumar@example.com', '9876543210', 'Veterans Association', 'Coordinator', ARRAY['counseling', 'paperwork', 'legal-aid'], ARRAY['Delhi', 'Haryana'], '{"weekdays": true, "weekends": true, "evenings": false}'),
+  ('Priya Singh', 'priya.singh@example.com', '8765432109', 'Medical Corps Assoc.', 'Medical Volunteer', ARRAY['medical', 'first-aid', 'counseling'], ARRAY['Mumbai', 'Pune'], '{"weekdays": false, "weekends": true, "evenings": true}'),
+  ('Vikram Mehta', 'vikram.mehta@example.com', '7654321098', 'Indian Ex-Servicemen League', 'Legal Advisor', ARRAY['legal-aid', 'paperwork', 'pension-assistance'], ARRAY['Bangalore', 'Chennai'], '{"weekdays": true, "weekends": false, "evenings": true}'),
+  ('Ananya Desai', 'ananya.desai@example.com', '6543210987', 'Education Support Network', 'Education Mentor', ARRAY['education', 'tutoring', 'career-guidance'], ARRAY['Kolkata', 'Bhubaneswar'], '{"weekdays": true, "weekends": true, "evenings": true}'),
+  ('Sanjay Verma', 'sanjay.verma@example.com', '5432109876', 'Sainik Welfare Board', 'Financial Advisor', ARRAY['financial-planning', 'pension-assistance', 'housing-support'], ARRAY['Jaipur', 'Ahmedabad'], '{"weekdays": true, "weekends": false, "evenings": false}');
+
+-- 10. Insert sample families
+INSERT INTO families (martyr_name, martyr_rank, martyr_unit, force_type, date_of_martyrdom, relationship_with_martyr, region, address, contact_details, total_children, status, last_visited_date)
+VALUES
+  ('Capt. Anuj Nayyar', 'Captain', '17 Jat Regiment', 'Army', '1999-07-06', 'Wife', 'Delhi', '{"street": "15, Defense Colony", "city": "New Delhi", "state": "Delhi", "pincode": "110024"}', '{"primaryPhone": "9876543210", "alternatePhone": "8765432109", "email": "family.nayyar@example.com"}', 2, 'Active', '2023-10-15'),
+  ('Maj. Sandeep Unnikrishnan', 'Major', 'NSG Commando', 'Army', '2008-11-28', 'Father', 'Karnataka', '{"street": "123, 9th Cross", "city": "Bangalore", "state": "Karnataka", "pincode": "560034"}', '{"primaryPhone": "7654321098", "alternatePhone": "6543210987", "email": "family.unnikrishnan@example.com"}', 0, 'Active', '2023-11-05'),
+  ('CRPF HC Narayan Gurung', 'Head Constable', '92 Battalion', 'CRPF', '2019-02-14', 'Wife', 'Uttarakhand', '{"street": "Village Chamoli", "city": "Dehradun", "state": "Uttarakhand", "pincode": "248001"}', '{"primaryPhone": "6543210987", "alternatePhone": "", "email": "family.gurung@example.com"}', 3, 'Active', '2023-09-20'),
+  ('Lt. Manoj Kumar Pandey', 'Lieutenant', '1/11 Gorkha Rifles', 'Army', '1999-07-03', 'Brother', 'Uttar Pradesh', '{"street": "45, Civil Lines", "city": "Lucknow", "state": "Uttar Pradesh", "pincode": "226001"}', '{"primaryPhone": "5432109876", "alternatePhone": "4321098765", "email": "family.pandey@example.com"}', 1, 'Active', '2023-08-15'),
+  ('Nb Sub. Chuni Lal', 'Naib Subedar', '8 JAK LI', 'Army', '2007-06-24', 'Wife', 'Jammu & Kashmir', '{"street": "Village Beri", "city": "Jammu", "state": "Jammu & Kashmir", "pincode": "180001"}', '{"primaryPhone": "4321098765", "alternatePhone": "", "email": "family.lal@example.com"}', 2, 'Active', '2023-07-26');
+
+-- 11. Insert sample family members
+INSERT INTO family_members (family_id, name, age, relation, education, occupation, education_level, marital_status)
+VALUES
+  ((SELECT id FROM families WHERE martyr_name = 'Capt. Anuj Nayyar'), 'Meena Nayyar', 45, 'Wife', 'MBA', 'Business Owner', 'Post Graduate', 'Widow'),
+  ((SELECT id FROM families WHERE martyr_name = 'Capt. Anuj Nayyar'), 'Arjun Nayyar', 19, 'Son', 'Engineering Student', 'Student', 'Under Graduate', 'Single'),
+  ((SELECT id FROM families WHERE martyr_name = 'Capt. Anuj Nayyar'), 'Aaradhya Nayyar', 15, 'Daughter', 'School', 'Student', 'High School', 'Single'),
+  ((SELECT id FROM families WHERE martyr_name = 'Maj. Sandeep Unnikrishnan'), 'K. Unnikrishnan', 72, 'Father', 'Retired ISRO Officer', 'Retired', 'Graduate', 'Married'),
+  ((SELECT id FROM families WHERE martyr_name = 'Maj. Sandeep Unnikrishnan'), 'Dhanalakshmi Unnikrishnan', 68, 'Mother', 'Homemaker', 'Homemaker', 'Graduate', 'Married');
+
+-- 12. Insert sample scholarships
+INSERT INTO scholarships (name, provider, description, eligibility, benefits, application_link, application_process, deadline, region, course_levels, tags)
+VALUES
+  ('Prime Minister''s Scholarship Scheme', 'Ministry of Defence', 'Scholarship for dependent children of ex-servicemen and their widows including those killed/disabled during conflicts', '{"items": ["Children of ex-servicemen and their widows", "Children of personnel killed/disabled during conflicts", "Students pursuing professional degrees"], "note": "Income criteria may apply"}', '{"items": ["Rs. 36,000 per annum for boys", "Rs. 37,000 per annum for girls", "Duration of the course"], "note": "Amount may be revised periodically"}', 'https://desw.gov.in', 'Apply through Kendriya Sainik Board/respective Zila/Rajya Sainik Boards with required documents', '2023-10-31', NULL, ARRAY['Under Graduate', 'Professional Degree'], ARRAY['national', 'government', 'professional courses']),
+  ('CRPF Education Scholarship', 'Central Reserve Police Force', 'For the wards of serving CRPF personnel and wards of martyrs of CRPF', '{"items": ["Wards of CRPF martyrs", "Pursuing education from Class 1 to PhD", "Must be enrolled in a recognized institution"], "note": "No income bar for wards of martyrs"}', '{"items": ["Tuition fee reimbursement", "Hostel charges", "Book grant"], "note": "Different slabs based on course and level"}', 'https://crpf.gov.in', 'Submit application to Welfare Directorate, CRPF with necessary documents including education certificates', '2023-12-15', NULL, ARRAY['Primary', 'Secondary', 'Under Graduate', 'Post Graduate', 'Doctoral'], ARRAY['national', 'government', 'all levels']);
+
+-- 13. Set up storage buckets
+INSERT INTO storage.buckets (id, name, public) VALUES ('profiles', 'Profiles', true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'Documents', false);
+CREATE POLICY "Profile pictures are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'profiles');
+CREATE POLICY "Documents are accessible by authenticated users only" ON storage.objects FOR SELECT USING (bucket_id = 'documents' AND auth.role() = 'authenticated'); 
