@@ -70,16 +70,16 @@ const Navbar = () => {
 
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center space-x-1">
-          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>{t('navigation.home')}</Link>
-          <Link to="/families" className={`nav-link ${isActive('/families') ? 'active' : ''}`}>{t('navigation.families')}</Link>
+          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
+          <Link to="/families" className={`nav-link ${isActive('/families') ? 'active' : ''}`}>Families</Link>
           <Link to="/welfare-map" className={`nav-link ${isActive('/welfare-map') ? 'active' : ''}`}>Welfare Map</Link>
-          <Link to="/volunteer" className={`nav-link ${isActive('/volunteer') ? 'active' : ''}`}>{t('navigation.volunteers')}</Link>
+          <Link to="/volunteer" className={`nav-link ${isActive('/volunteer') ? 'active' : ''}`}>Volunteers</Link>
           <Link to="/legacy-wall" className={`nav-link ${isActive('/legacy-wall') ? 'active' : ''}`}>Legacy Wall</Link>
           
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="nav-link bg-transparent">{t('navigation.resources')}</NavigationMenuTrigger>
+                <NavigationMenuTrigger className="nav-link bg-transparent">Resources</NavigationMenuTrigger>
                 <NavigationMenuContent className="bg-[#1A1A1A]/95 border-[#333333] backdrop-blur-md min-w-[220px]">
                   <ul className="p-2 space-y-1">
                     <li className="w-full">
@@ -88,7 +88,7 @@ const Navbar = () => {
                         className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Educational Support
+                        {t('resources.educational_support')}
                       </Link>
                     </li>
                     <li className="w-full">
@@ -97,7 +97,7 @@ const Navbar = () => {
                         className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Financial Aid
+                        {t('resources.financial_aid')}
                       </Link>
                     </li>
                     <li className="w-full">
@@ -106,7 +106,7 @@ const Navbar = () => {
                         className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Counseling Services
+                        {t('resources.counseling_services')}
                       </Link>
                     </li>
                     <li className="w-full">
@@ -115,7 +115,7 @@ const Navbar = () => {
                         className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Legal Help
+                        {t('resources.legal_help')}
                       </Link>
                     </li>
                   </ul>
@@ -124,7 +124,7 @@ const Navbar = () => {
             </NavigationMenuList>
           </NavigationMenu>
           
-          <Link to="/report-concern" className={`nav-link ${isActive('/report-concern') ? 'active' : ''}`}>{t('navigation.contact')}</Link>
+          <Link to="/report-concern" className={`nav-link ${isActive('/report-concern') ? 'active' : ''}`}>Contact</Link>
         </div>
 
         {/* Auth Buttons or User Menu */}
@@ -140,13 +140,13 @@ const Navbar = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-[#1A1A1A]/95 border-[#333333] backdrop-blur-md">
-                <DropdownMenuLabel>{t('common.name')}</DropdownMenuLabel>
+                <DropdownMenuLabel>Name</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate(getProfileLink())}>
-                  <User className="h-4 w-4 mr-2" /> {t('navigation.profile')}
+                  <User className="h-4 w-4 mr-2" /> Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" /> {t('navigation.logout')}
+                  <LogOut className="h-4 w-4 mr-2" /> Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -154,12 +154,12 @@ const Navbar = () => {
             <>
               <Link to="/auth/login">
                 <Button variant="outline" size="sm" className="border-military text-military hover:bg-military hover:text-white">
-                  {t('navigation.login')}
+                  Login
                 </Button>
               </Link>
               <Link to="/auth/register">
                 <Button size="sm" className="bg-military hover:bg-military-light text-white">
-                  {t('navigation.register')}
+                  Register
                 </Button>
               </Link>
             </>
@@ -187,10 +187,10 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#121212]/95 backdrop-blur-md py-4 px-4 shadow-lg">
           <div className="flex flex-col space-y-4">
-            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('navigation.home')}</Link>
-            <Link to="/families" className={`nav-link ${isActive('/families') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('navigation.families')}</Link>
+            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Home</Link>
+            <Link to="/families" className={`nav-link ${isActive('/families') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Families</Link>
             <Link to="/welfare-map" className={`nav-link ${isActive('/welfare-map') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Welfare Map</Link>
-            <Link to="/volunteer" className={`nav-link ${isActive('/volunteer') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('navigation.volunteers')}</Link>
+            <Link to="/volunteer" className={`nav-link ${isActive('/volunteer') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Volunteers</Link>
             <Link to="/legacy-wall" className={`nav-link ${isActive('/legacy-wall') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Legacy Wall</Link>
             
             <div className="relative">
@@ -201,7 +201,7 @@ const Navbar = () => {
                   submenu.classList.toggle('hidden');
                 }
               }}>
-                {t('navigation.resources')} <ChevronDown className="ml-1 h-4 w-4" />
+                Resources <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               <div className="hidden pl-4 pt-2 pb-1 space-y-2">
                 <Link 
@@ -209,38 +209,38 @@ const Navbar = () => {
                   className="block w-full text-white/80 hover:text-white py-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Educational Support
+                  {t('resources.educational_support')}
                 </Link>
                 <Link 
                   to="/resources/financial-aid" 
                   className="block w-full text-white/80 hover:text-white py-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Financial Aid
+                  {t('resources.financial_aid')}
                 </Link>
                 <Link 
                   to="/resources/counseling-services" 
                   className="block w-full text-white/80 hover:text-white py-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Counseling Services
+                  {t('resources.counseling_services')}
                 </Link>
                 <Link 
                   to="/resources/legal-help" 
                   className="block w-full text-white/80 hover:text-white py-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Legal Help
+                  {t('resources.legal_help')}
                 </Link>
               </div>
             </div>
             
-            <Link to="/report-concern" className={`nav-link ${isActive('/report-concern') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>{t('navigation.contact')}</Link>
+            <Link to="/report-concern" className={`nav-link ${isActive('/report-concern') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             
             {/* Language Selector for Mobile */}
             <div className="py-2">
               <div className="text-sm text-white/60 mb-2 flex items-center">
-                <Globe className="h-4 w-4 mr-1" /> {t('common.select_language')}
+                <Globe className="h-4 w-4 mr-1" /> Select Language
               </div>
               <LanguageSelector />
             </div>
@@ -250,7 +250,7 @@ const Navbar = () => {
               <div className="flex flex-col space-y-2 pt-4">
                 <Link to={getProfileLink()} className="w-full" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" size="sm" className="border-military text-military hover:bg-military hover:text-white w-full">
-                    <User className="h-4 w-4 mr-2" /> {t('navigation.profile')}
+                    <User className="h-4 w-4 mr-2" /> Profile
                   </Button>
                 </Link>
                 <Button
@@ -261,19 +261,19 @@ const Navbar = () => {
                     setMobileMenuOpen(false);
                   }}
                 >
-                  <LogOut className="h-4 w-4 mr-2" /> {t('navigation.logout')}
+                  <LogOut className="h-4 w-4 mr-2" /> Logout
                 </Button>
               </div>
             ) : (
               <div className="flex space-x-4 pt-4">
                 <Link to="/auth/login" className="w-full" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" size="sm" className="border-military text-military hover:bg-military hover:text-white w-full">
-                    {t('navigation.login')}
+                    Login
                   </Button>
                 </Link>
                 <Link to="/auth/register" className="w-full" onClick={() => setMobileMenuOpen(false)}>
                   <Button size="sm" className="bg-military hover:bg-military-light text-white w-full">
-                    {t('navigation.register')}
+                    Register
                   </Button>
                 </Link>
               </div>

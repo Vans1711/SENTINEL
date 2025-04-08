@@ -15,9 +15,7 @@
     "register": "Register",
     "profile": "Profile",
     "settings": "Settings",
-    "logout": "Logout",
-    "welfare_map": "Welfare Map",
-    "legacy_wall": "Legacy Wall"
+    "logout": "Logout"
   },
   
   "auth": {
@@ -110,28 +108,7 @@
     "save": "Save",
     "share": "Share",
     "more_info": "More Information",
-    "view_all": "View All",
-    "educational_support": "Educational Support",
-    "financial_aid": "Financial Aid",
-    "counseling_services": "Counseling Services",
-    "legal_help": "Legal Help",
-    
-    "financial_aid_page": {
-      "title": "Financial Aid",
-      "description": "Financial support programs for martyr families",
-      "govt_pensions": "Government Pensions",
-      "govt_pensions_desc": "Information and assistance regarding government pension schemes for families of martyrs.",
-      "pension_details": "Pension Details",
-      "housing_assistance": "Housing Assistance",
-      "housing_assistance_desc": "Special housing schemes and subsidies available for martyr families.",
-      "housing_schemes": "Housing Schemes",
-      "special_loans": "Special Loans",
-      "special_loans_desc": "Low-interest loans for education, business, and personal needs specifically for martyr families.",
-      "loan_programs": "Loan Programs",
-      "documentation_help": "Documentation Help",
-      "documentation_help_desc": "Assistance with preparing and submitting documents for various financial benefits.",
-      "get_assistance": "Get Assistance"
-    }
+    "view_all": "View All"
   },
   
   "volunteers": {
@@ -208,8 +185,7 @@
       "pension": "Pension Status",
       "volunteer": "Volunteer Opportunities",
       "report": "Report a Concern",
-      "contact": "Contact Support",
-      "emotional_support": "Emotional Check-in"
+      "contact": "Contact Support"
     },
     "voice": {
       "start_listening": "Start voice input",
@@ -218,51 +194,6 @@
       "unmute": "Unmute voice output",
       "not_supported": "Voice input not supported in your browser",
       "error": "Error with voice recognition"
-    },
-    "emotional": {
-      "check_in": "How are you feeling today? You can share your emotions with me.",
-      "detected": "I noticed you might be feeling {{emotion}}. Would you like to talk about it?",
-      "happy_response": "I'm glad to hear you're feeling happy! What's making you feel good today?",
-      "sad_response": "I'm sorry to hear you're feeling sad. Would you like to share what's troubling you?",
-      "anxious_response": "It's normal to feel anxious sometimes. What's on your mind?",
-      "angry_response": "I understand you're feeling frustrated. Would you like to talk about what's bothering you?",
-      "stressed_response": "Feeling stressed is common. What's causing your stress right now?",
-      "hopeful_response": "It's wonderful that you're feeling hopeful! What are you looking forward to?"
     }
-  },
-  
-  "welfare_map": {
-    "title": "Welfare Map",
-    "description": "View martyr family distribution and support status across India",
-    "filter_view": "Filter View",
-    "map_layers": "Map Layers",
-    "legend": "Legend",
-    "families_with_support": "Families with Support",
-    "families_needing_help": "Families Needing Help",
-    "national_overview": "National Overview",
-    "total_families": "Total Families",
-    "need_urgent_help": "Need Urgent Help",
-    "support_coverage": "Support Coverage",
-    "covered": "Covered",
-    "pending": "Pending",
-    "clear": "Clear",
-    "families": "Families",
-    "alerts": "Alerts",
-    "view_detailed_report": "View Detailed Report",
-    "all_locations": "All Locations",
-    "contact_now": "Contact Now"
-  },
-  
-  "legacy_wall": {
-    "title": "Digital Legacy Wall",
-    "description": "Honoring the brave souls who made the ultimate sacrifice for our nation. Leave tributes, share memories, and ensure their legacy lives on forever.",
-    "back_to_wall": "← Back to Legacy Wall",
-    "story": "Story",
-    "tributes": "Tributes",
-    "share": "Share",
-    "add_tribute": "Add Tribute",
-    "post_tribute": "Post Tribute",
-    "your_message": "Your message",
-    "honor_memory": "Honor the memory of"
   }
 } 

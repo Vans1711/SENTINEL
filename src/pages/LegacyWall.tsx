@@ -9,6 +9,7 @@ import { Heart, MessageCircle, Share2, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LegacyWallCard from '../components/LegacyWallCard';
 import MartyrDetailCard from '../components/MartyrDetailCard';
+import { useTranslation } from 'react-i18next';
 
 // Demo data for martyrs
 const martyrsData = [
@@ -145,6 +146,7 @@ const LegacyWall = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedMartyr, setSelectedMartyr] = useState<number | null>(null);
   const [tributeMessage, setTributeMessage] = useState('');
+  const { t } = useTranslation();
 
   const handleTributeSubmit = (e: React.FormEvent, martyrId: number) => {
     e.preventDefault();
@@ -167,11 +169,10 @@ const LegacyWall = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              <span className="text-military">Digital Legacy Wall</span>
+              <span className="text-military">{t('legacy_wall.title')}</span>
             </h1>
             <p className="text-white/70">
-              Honoring the brave souls who made the ultimate sacrifice for our nation. 
-              Leave tributes, share memories, and ensure their legacy lives on forever.
+              {t('legacy_wall.description')}
             </p>
           </div>
 
@@ -182,7 +183,7 @@ const LegacyWall = () => {
                 onClick={() => setSelectedMartyr(null)}
                 className="mb-6 border-military text-military hover:bg-military/10"
               >
-                ← Back to Legacy Wall
+                {t('legacy_wall.back_to_wall')}
               </Button>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -195,8 +196,8 @@ const LegacyWall = () => {
                 <div className="lg:col-span-2">
                   <Tabs defaultValue="story" className="w-full">
                     <TabsList className="grid grid-cols-2 mb-6">
-                      <TabsTrigger value="story">Story</TabsTrigger>
-                      <TabsTrigger value="tributes">Tributes</TabsTrigger>
+                      <TabsTrigger value="story">{t('legacy_wall.story')}</TabsTrigger>
+                      <TabsTrigger value="tributes">{t('legacy_wall.tributes')}</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="story">
