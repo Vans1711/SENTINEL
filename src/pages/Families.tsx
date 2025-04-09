@@ -1,12 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, UserPlus, HeartHandshake, MapPin } from 'lucide-react';
+import { Search, Filter, UserPlus, HeartHandshake, MapPin, Layers, Building, Heart, Briefcase } from 'lucide-react';
 import FamilyDetailModal, { FamilyDetail } from '@/components/FamilyDetailModal';
 import { demoFamilyDetails, getFamilyDetailById } from '@/data/demoFamilyDetails';
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useTranslation } from 'react-i18next';
+
+// Fix Leaflet marker icon issues
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Create DefaultIcon for markers
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+
+// Set default icon for all markers
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Add support centers data (from WelfareMap.tsx)
+const governmentOffices = [
+  {
+    id: 101,
+    name: 'Ministry of Defence Welfare Office',
+    type: 'government',
+    address: 'South Block, New Delhi',
+    services: ['Pension Processing', 'Family Support Programs', 'Documentation'],
+    position: [28.6129, 77.2085]
+  },
+  {
+    id: 102,
+    name: 'District Sainik Welfare Office',
+    type: 'government',
+    address: 'District Center, Delhi NCR',
+    services: ['Local Support', 'Certificate Issuance', 'Grievance Handling'],
+    position: [28.5512, 77.2558]
+  }
+];
+
+const supportCenters = [
+  {
+    id: 201,
+    name: 'Army Welfare Placement Organization',
+    type: 'support',
+    address: 'Cantonment Area, Delhi',
+    services: ['Job Placement', 'Skill Development', 'Career Counseling'],
+    position: [28.5410, 77.1865]
+  },
+  {
+    id: 202,
+    name: 'CRPF Family Welfare Center',
+    type: 'support',
+    address: 'CRPF Campus, Delhi',
+    services: ['Family Counseling', 'Children Education', 'Healthcare Support'],
+    position: [28.6821, 77.2060]
+  }
+];
+
+// Combine all location data
+const supportData = [
+  { 
+    id: 1, 
+    name: 'Bharat Sainik Welfare Center', 
+    type: 'ngo', 
+    address: 'Sector 14, Delhi NCR', 
+    services: ['Financial Support', 'Counseling', 'Education'], 
+    position: [28.6139, 77.2090] 
+  },
+  { 
+    id: 2, 
+    name: 'Martyr Family Support Foundation', 
+    type: 'ngo', 
+    address: 'Connaught Place, New Delhi', 
+    services: ['Housing Assistance', 'Medical Support'], 
+    position: [28.6304, 77.2177] 
+  },
+  { 
+    id: 3, 
+    name: 'Government Pension Office', 
+    type: 'government', 
+    address: 'Central Secretariat, New Delhi', 
+    services: ['Pension Distribution', 'Documentation Support'], 
+    position: [28.6129, 77.2295] 
+  },
+  { 
+    id: 4, 
+    name: 'Military Welfare Center', 
+    type: 'support', 
+    address: 'Cantonment Area, Delhi', 
+    services: ['Family Services', 'Grievance Support', 'Legal Aid'], 
+    position: [28.5921, 77.1691] 
+  },
+  { 
+    id: 5, 
+    name: 'Veer Nari Support Group', 
+    type: 'ngo', 
+    address: 'Vasant Kunj, New Delhi', 
+    services: ['Emotional Support', 'Community Building', 'Skill Development'], 
+    position: [28.5355, 77.1571] 
+  },
+  ...governmentOffices,
+  ...supportCenters
+];
+
+// Type of locations to filter
+type LocationType = 'all' | 'ngo' | 'government' | 'support';
 
 const FamilyCard = ({ id, name, region, status, lastVisit, children, onViewProfile }: { 
   id: number,
@@ -79,6 +186,15 @@ const Families = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'green' | 'yellow' | 'red'>('all');
   const [selectedFamilyDetail, setSelectedFamilyDetail] = useState<FamilyDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { t } = useTranslation();
+  
+  // Welfare Map states
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [locationType, setLocationType] = useState<LocationType>('all');
+  const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([28.6139, 77.2090]);
+  const [mapZoom, setMapZoom] = useState<number>(11);
+  const [showWelfareMap, setShowWelfareMap] = useState(false);
   
   const families = demoFamilyDetails.map(family => ({
     id: family.id,
@@ -115,6 +231,63 @@ const Families = () => {
     const matchesStatus = statusFilter === 'all' || family.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Welfare Map functions
+  const getFilteredLocations = () => {
+    if (locationType === 'all') return supportData;
+    return supportData.filter(location => location.type === locationType);
+  };
+  
+  const getMarkerIcon = (type: string) => {
+    switch(type) {
+      case 'ngo':
+        return new L.Icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+          shadowUrl: iconShadow,
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34]
+        });
+      case 'government':
+        return new L.Icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+          shadowUrl: iconShadow,
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34]
+        });
+      case 'support':
+        return new L.Icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+          shadowUrl: iconShadow,
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34]
+        });
+      default:
+        return DefaultIcon;
+    }
+  };
+  
+  const focusLocation = (locationId: number) => {
+    const location = supportData.find(item => item.id === locationId);
+    if (location) {
+      setMapCenter(location.position);
+      setMapZoom(15);
+      setSelectedLocation(locationId);
+    }
+  };
+
+  // Component to sync map view when center or zoom changes
+  const MapController = () => {
+    const map = useMap();
+    
+    useEffect(() => {
+      map.setView(mapCenter, mapZoom);
+    }, [map, mapCenter, mapZoom]);
+    
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-[#121212] text-white flex flex-col">
@@ -191,6 +364,171 @@ const Families = () => {
               </Button>
             </div>
           )}
+          
+          {/* Welfare Map Section */}
+          <div id="welfare-map" className="mt-16 mb-8">
+            <Card className="bg-[#1A1A1A]/30 border-[#2D3748] text-white">
+              <CardHeader className="cursor-pointer" onClick={() => setShowWelfareMap(!showWelfareMap)}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <MapPin className="mr-2 h-5 w-5 text-military" />
+                    <CardTitle className="text-xl">Welfare Map</CardTitle>
+                  </div>
+                  <div className="text-military">
+                    {showWelfareMap ? "▲" : "▼"}
+                  </div>
+                </div>
+                <p className="text-white/70 pl-7">Find support centers and resources near martyr families</p>
+              </CardHeader>
+              
+              {showWelfareMap && (
+                <CardContent className="pt-2">
+                  <div className="space-y-6">
+                    <div className="flex flex-wrap gap-4">
+                      <Button 
+                        variant={locationType === 'all' ? "default" : "outline"} 
+                        className={`border-military flex items-center ${locationType === 'all' ? 'bg-military' : ''}`}
+                        onClick={() => setLocationType('all')}
+                      >
+                        <Layers size={16} className="mr-2" />
+                        {t('welfare_map.all_locations')}
+                      </Button>
+                      
+                      <Button 
+                        variant={locationType === 'ngo' ? "default" : "outline"} 
+                        className={`border-military flex items-center ${locationType === 'ngo' ? 'bg-green-700' : ''}`}
+                        onClick={() => setLocationType('ngo')}
+                      >
+                        <Heart size={16} className="mr-2" />
+                        NGOs
+                      </Button>
+                      
+                      <Button 
+                        variant={locationType === 'government' ? "default" : "outline"} 
+                        className={`border-military flex items-center ${locationType === 'government' ? 'bg-red-700' : ''}`}
+                        onClick={() => setLocationType('government')}
+                      >
+                        <Building size={16} className="mr-2" />
+                        Government
+                      </Button>
+                      
+                      <Button 
+                        variant={locationType === 'support' ? "default" : "outline"} 
+                        className={`border-military flex items-center ${locationType === 'support' ? 'bg-blue-700' : ''}`}
+                        onClick={() => setLocationType('support')}
+                      >
+                        <Briefcase size={16} className="mr-2" />
+                        Support Centers
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="md:col-span-2">
+                        <div className="h-[500px] rounded-xl overflow-hidden border border-[#2D3748]">
+                          <MapContainer 
+                            center={mapCenter} 
+                            zoom={mapZoom} 
+                            style={{ height: '100%', width: '100%' }}
+                            zoomControl={false}
+                          >
+                            <TileLayer
+                              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            
+                            {getFilteredLocations().map(location => (
+                              <Marker 
+                                key={location.id} 
+                                position={location.position}
+                                icon={getMarkerIcon(location.type)}
+                              >
+                                <Popup>
+                                  <div className="p-1">
+                                    <h3 className="font-bold text-sm">{location.name}</h3>
+                                    <p className="text-xs text-gray-600">{location.address}</p>
+                                    <div className="mt-1 text-xs">
+                                      <strong>Services:</strong>
+                                      <ul className="list-disc pl-4 mt-1">
+                                        {location.services.map((service, idx) => (
+                                          <li key={idx}>{service}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </Popup>
+                              </Marker>
+                            ))}
+                            
+                            <ZoomControl position="bottomright" />
+                            <MapController />
+                          </MapContainer>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <Card className="bg-[#121212]/30 border-[#2D3748] text-white">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">Support Locations</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                              {getFilteredLocations().map(location => (
+                                <div 
+                                  key={location.id}
+                                  className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                                    selectedLocation === location.id 
+                                      ? 'bg-military/30 border border-military/50' 
+                                      : 'bg-[#1A1A1A]/30 hover:bg-[#1A1A1A]/50 border border-[#2D3748]'
+                                  }`}
+                                  onClick={() => focusLocation(location.id)}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <div className={`mt-1 h-3 w-3 rounded-full ${
+                                      location.type === 'ngo' ? 'bg-green-500' : 
+                                      location.type === 'government' ? 'bg-red-500' : 'bg-blue-500'
+                                    }`} />
+                                    <div>
+                                      <h3 className="font-medium text-sm">{location.name}</h3>
+                                      <div className="flex items-center text-xs text-white/70">
+                                        <MapPin className="h-3 w-3 mr-1" />
+                                        {location.address}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card className="bg-[#121212]/30 border-[#2D3748] text-white">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">Filter Locations</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              <div className="flex items-center">
+                                <div className="h-3 w-3 rounded-full bg-green-500 mr-2" />
+                                <p className="text-sm">NGOs & Foundations</p>
+                              </div>
+                              <div className="flex items-center">
+                                <div className="h-3 w-3 rounded-full bg-red-500 mr-2" />
+                                <p className="text-sm">Government Offices</p>
+                              </div>
+                              <div className="flex items-center">
+                                <div className="h-3 w-3 rounded-full bg-blue-500 mr-2" />
+                                <p className="text-sm">Support Centers</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          </div>
         </div>
       </main>
       

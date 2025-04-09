@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown, Bell, User, LogOut, Globe } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, Globe, UserCircle, LifeBuoy } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   NavigationMenu,
@@ -71,8 +71,49 @@ const Navbar = () => {
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center space-x-1">
           <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
-          <Link to="/families" className={`nav-link ${isActive('/families') ? 'active' : ''}`}>Families</Link>
-          <Link to="/welfare-map" className={`nav-link ${isActive('/welfare-map') ? 'active' : ''}`}>Welfare Map</Link>
+          
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className={`nav-link bg-transparent ${location.pathname.includes('/families') ? 'active' : ''}`}>Families</NavigationMenuTrigger>
+                <NavigationMenuContent className="bg-[#1A1A1A]/95 border-[#333333] backdrop-blur-md min-w-[220px]">
+                  <ul className="p-2 space-y-1">
+                    <li className="w-full">
+                      <Link 
+                        to="/families" 
+                        className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Family List
+                      </Link>
+                    </li>
+                    <li className="w-full">
+                      <Link 
+                        to="/families/welfare-map" 
+                        className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Welfare Map
+                      </Link>
+                    </li>
+                    <li className="w-full">
+                      <Link 
+                        to="/family/life-navigator" 
+                        className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center">
+                          <LifeBuoy className="h-4 w-4 mr-2" />
+                          Life Navigator
+                        </div>
+                      </Link>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+          
           <Link to="/volunteer" className={`nav-link ${isActive('/volunteer') ? 'active' : ''}`}>Volunteers</Link>
           <Link to="/legacy-wall" className={`nav-link ${isActive('/legacy-wall') ? 'active' : ''}`}>Legacy Wall</Link>
           
@@ -188,8 +229,45 @@ const Navbar = () => {
         <div className="md:hidden bg-[#121212]/95 backdrop-blur-md py-4 px-4 shadow-lg">
           <div className="flex flex-col space-y-4">
             <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Home</Link>
-            <Link to="/families" className={`nav-link ${isActive('/families') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Families</Link>
-            <Link to="/welfare-map" className={`nav-link ${isActive('/welfare-map') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Welfare Map</Link>
+            
+            <div className="relative">
+              <button className={`nav-link flex items-center w-full justify-between ${location.pathname.includes('/families') ? 'active' : ''}`} onClick={(e) => {
+                e.preventDefault();
+                const submenu = e.currentTarget.nextElementSibling;
+                if (submenu) {
+                  submenu.classList.toggle('hidden');
+                }
+              }}>
+                Families <ChevronDown className="ml-1 h-4 w-4" />
+              </button>
+              <div className="hidden pl-4 pt-2 pb-1 space-y-2">
+                <Link 
+                  to="/families" 
+                  className="block w-full text-white/80 hover:text-white py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Family List
+                </Link>
+                <Link 
+                  to="/families/welfare-map" 
+                  className="block w-full text-white/80 hover:text-white py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Welfare Map
+                </Link>
+                <Link 
+                  to="/family/life-navigator" 
+                  className="block w-full text-white/80 hover:text-white py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center">
+                    <LifeBuoy className="h-4 w-4 mr-2" />
+                    Life Navigator
+                  </div>
+                </Link>
+              </div>
+            </div>
+            
             <Link to="/volunteer" className={`nav-link ${isActive('/volunteer') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Volunteers</Link>
             <Link to="/legacy-wall" className={`nav-link ${isActive('/legacy-wall') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Legacy Wall</Link>
             

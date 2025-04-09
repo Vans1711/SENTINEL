@@ -22,6 +22,7 @@ import LanguageSettings from "./pages/LanguageSettings";
 import LegacyWall from "./pages/LegacyWall";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ChatbotProvider } from "./components/ChatbotProvider";
+import LifeNavigator from "./pages/Family/LifeNavigator";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/families" element={<Families />} />
-              <Route path="/welfare-map" element={<WelfareMap />} />
+              <Route path="/families/welfare-map" element={<WelfareMap />} />
+              <Route path="/welfare-map" element={<Navigate to="/families/welfare-map" replace />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/report-concern" element={<ReportConcern />} />
               
@@ -55,6 +57,7 @@ const App = () => (
               {/* Profile Routes */}
               <Route path="/volunteer/profile" element={<VolunteerProfile />} />
               <Route path="/family/profile" element={<FamilyProfile />} />
+              <Route path="/family/life-navigator" element={<LifeNavigator />} />
               
               {/* Language Settings */}
               <Route path="/language-settings" element={<LanguageSettings />} />

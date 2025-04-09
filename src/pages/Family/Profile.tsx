@@ -23,7 +23,8 @@ import {
   CheckCircle2,
   AlarmClock,
   Bookmark,
-  Puzzle
+  Puzzle,
+  LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -97,6 +98,9 @@ const FamilyProfile = () => {
                 </div>
               </div>
               <div className="ml-auto mt-auto pb-2">
+                <Button className="bg-military text-white hover:bg-military-light mr-2" onClick={() => navigate('/family/life-navigator')}>
+                  <LifeBuoy className="h-4 w-4 mr-2" /> Life Navigator
+                </Button>
                 <Button className="bg-military text-white hover:bg-military-light">
                   <Edit className="h-4 w-4 mr-2" /> Edit Profile
                 </Button>
