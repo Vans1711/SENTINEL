@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Map, Calendar, Award, Heart, Star, Clock, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Volunteer = () => {
   return (
@@ -111,9 +112,11 @@ const Volunteer = () => {
                 </div>
                 
                 <div className="mt-8">
-                  <Button size="lg" className="bg-military text-white hover:bg-military-light">
-                    Apply as a Volunteer
-                  </Button>
+                  <Link to="/auth/register?type=volunteer">
+                    <Button size="lg" className="bg-military text-white hover:bg-military-light">
+                      Apply as a Volunteer
+                    </Button>
+                  </Link>
                 </div>
               </div>
               
@@ -220,9 +223,11 @@ const Volunteer = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-military text-white hover:bg-military-light">
-                  Apply Now
-                </Button>
+                <Link to="/auth/register?type=volunteer">
+                  <Button size="lg" className="bg-military text-white hover:bg-military-light">
+                    Apply Now
+                  </Button>
+                </Link>
                 
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
                   Learn More

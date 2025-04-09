@@ -28,6 +28,7 @@ import {
   Clock3,
   CirclePlus
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Types for the family detail data
 export type FamilyMember = {
@@ -308,7 +309,7 @@ const FamilyDetailModal: React.FC<FamilyDetailModalProps> = ({ isOpen, onClose, 
                         <Progress value={
                           familyDetail.supportStatus.housing === 'Provided' ? 100 :
                           familyDetail.supportStatus.housing === 'In Progress' ? 50 : 25
-                        } className="h-1.5 bg-[#333]" indicatorClassName="bg-military" />
+                        } className="h-1.5 bg-[#333]" />
                       </div>
                       
                       <div>
@@ -321,7 +322,7 @@ const FamilyDetailModal: React.FC<FamilyDetailModalProps> = ({ isOpen, onClose, 
                         <Progress value={
                           familyDetail.supportStatus.education === 'Approved' ? 100 :
                           familyDetail.supportStatus.education === 'In Progress' ? 50 : 25
-                        } className="h-1.5 bg-[#333]" indicatorClassName="bg-military" />
+                        } className="h-1.5 bg-[#333]" />
                       </div>
                       
                       <div>
@@ -334,7 +335,7 @@ const FamilyDetailModal: React.FC<FamilyDetailModalProps> = ({ isOpen, onClose, 
                         <Progress value={
                           familyDetail.supportStatus.healthcare === 'Approved' ? 100 :
                           familyDetail.supportStatus.healthcare === 'In Progress' ? 50 : 25
-                        } className="h-1.5 bg-[#333]" indicatorClassName="bg-military" />
+                        } className="h-1.5 bg-[#333]" />
                       </div>
                       
                       <div>
@@ -347,7 +348,7 @@ const FamilyDetailModal: React.FC<FamilyDetailModalProps> = ({ isOpen, onClose, 
                         <Progress value={
                           familyDetail.supportStatus.employment === 'Approved' ? 100 :
                           familyDetail.supportStatus.employment === 'In Progress' ? 50 : 25
-                        } className="h-1.5 bg-[#333]" indicatorClassName="bg-military" />
+                        } className="h-1.5 bg-[#333]" />
                       </div>
                     </div>
                   </div>
@@ -538,10 +539,12 @@ const FamilyDetailModal: React.FC<FamilyDetailModalProps> = ({ isOpen, onClose, 
 
         <DialogFooter className="flex gap-2">
           <Button variant="outline" onClick={onClose} className="border-[#333]">Close</Button>
-          <Button className="bg-military text-white hover:bg-military-light">
-            <HeartHandshake className="h-4 w-4 mr-2" />
-            Provide Support
-          </Button>
+          <Link to="/auth/register?type=volunteer">
+            <Button className="bg-military text-white hover:bg-military-light">
+              <HeartHandshake className="h-4 w-4 mr-2" />
+              Provide Support
+            </Button>
+          </Link>
         </DialogFooter>
       </DialogContent>
     </Dialog>
