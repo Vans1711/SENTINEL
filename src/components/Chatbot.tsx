@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, X, Mic, MicOff, Volume2, VolumeX, Heart, HeartPulse, AlertCircle } from "lucide-react";
+import { MessageCircle, Send, X, Mic, MicOff, Volume2, VolumeX, Heart, HeartPulse, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
+import { getChatbotResponse } from "@/lib/chatbot-api";
 
-interface Message {
+export interface Message {
   id: string;
   content: string;
   isUser: boolean;
@@ -79,6 +80,8 @@ export function Chatbot() {
   
   const recognitionRef = useRef<any>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [messageHistory, setMessageHistory] = useState<Message[][]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
 
   // Check if speech recognition and speech synthesis are supported
   useEffect(() => {
@@ -215,8 +218,34 @@ export function Chatbot() {
     }, 10000);
   };
 
-  const handleSendMessage = (text = input) => {
+  const handleBack = () => {
+    if (currentHistoryIndex > 0) {
+      // Go back to previous conversation state
+      setCurrentHistoryIndex(prev => prev - 1);
+      setMessages(messageHistory[currentHistoryIndex - 1]);
+    } else {
+      // If we're at the beginning, reset to initial state
+      setMessages([
+        {
+          id: "1",
+          content: t("chatbot.welcome_message", "नमस्ते! मैं आपकी कैसे सहायता कर सकता हूं?"),
+          isUser: false,
+        },
+      ]);
+      setShowOptions(true);
+    }
+  };
+
+  const handleSendMessage = async (text = input) => {
     if (!text.trim()) return;
+    
+    // Save current state to history before making changes
+    if (currentHistoryIndex < messageHistory.length - 1) {
+      // If we're not at the latest state, remove future states
+      setMessageHistory(prev => prev.slice(0, currentHistoryIndex + 1));
+    }
+    setMessageHistory(prev => [...prev, [...messages]]);
+    setCurrentHistoryIndex(prev => prev + 1);
     
     // Add user message
     const userMessage: Message = {
@@ -246,22 +275,29 @@ export function Chatbot() {
           performEmotionalCheckIn();
         }, 2000);
       } else {
-        // Normal bot response for neutral messages
-        setTimeout(() => {
-          const botResponse = t("chatbot.processing_message", "हम आपकी प्रश्न पर काम कर रहे हैं और जल्द ही आपको उत्तर देंगे।");
-          
+        // Get response from OpenRouter API
+        try {
+          const response = await getChatbotResponse([...messages, userMessage]);
           const botMessage: Message = {
             id: crypto.randomUUID(),
-            content: botResponse,
+            content: response,
             isUser: false,
           };
           setMessages((prev) => [...prev, botMessage]);
           
           // Speak the response if speech synthesis is enabled
           if (isSpeaking && speechSynthesisSupported) {
-            speakText(botResponse);
+            speakText(response);
           }
-        }, 1000);
+        } catch (error) {
+          console.error("Error getting chatbot response:", error);
+          const errorMessage: Message = {
+            id: crypto.randomUUID(),
+            content: "I apologize, but I'm having trouble processing your request right now. Please try again later.",
+            isUser: false,
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        }
       }
     }
   };
@@ -350,36 +386,37 @@ export function Chatbot() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      {isOpen ? (
-        <Card className="w-80 sm:w-96 shadow-lg">
-          <div className="flex items-center justify-between bg-primary text-primary-foreground p-3 rounded-t-lg">
-            <div className="flex items-center">
-              <h3 className="font-semibold">{t("chatbot.title", "सहायता बॉट")}</h3>
-              {userEmotionalState !== 'neutral' && (
-                <Badge variant="outline" className="ml-2 flex items-center gap-1">
-                  {getEmotionIcon(userEmotionalState)}
-                  <span className="capitalize">{userEmotionalState}</span>
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              {speechSynthesisSupported && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={toggleSpeaking} 
-                  title={isSpeaking ? t("chatbot.voice.mute", "Mute voice") : t("chatbot.voice.unmute", "Unmute voice")}
-                  className="h-8 w-8 text-primary-foreground"
-                >
-                  {isSpeaking ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                </Button>
-              )}
-              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 text-primary-foreground">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      {!isOpen ? (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="rounded-full h-14 w-14 shadow-lg bg-primary hover:bg-primary/90"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      ) : (
+        <Card className="w-[350px] h-[500px] flex flex-col bg-background shadow-lg">
+          <div className="flex items-center justify-between p-4 border-b">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="h-8 w-8"
+              title="Go back to previous conversation"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h3 className="font-semibold">Help Assistant</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+              className="h-8 w-8"
+              title="Close chat"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <ScrollArea className="h-80 p-4" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -391,7 +428,7 @@ export function Chatbot() {
                 >
                   <div
                     className={cn(
-                      "max-w-[80%] rounded-lg px-3 py-2 text-sm",
+                      "max-w-[80%] rounded-lg px-4 py-3 text-sm whitespace-pre-wrap",
                       message.isUser
                         ? "bg-primary text-primary-foreground"
                         : message.emotionTag === 'check-in' 
@@ -399,9 +436,15 @@ export function Chatbot() {
                           : "bg-muted"
                     )}
                   >
-                    {message.content}
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      {message.content.split('\n').map((line, i) => (
+                        <p key={i} className="mb-2 last:mb-0">
+                          {line}
+                        </p>
+                      ))}
+                    </div>
                     {message.emotionTag && !message.isUser && message.emotionTag !== 'check-in' && (
-                      <div className="mt-1 flex items-center gap-1 text-xs opacity-70">
+                      <div className="mt-2 flex items-center gap-1 text-xs opacity-70">
                         {getEmotionIcon(message.emotionTag as EmotionType)}
                         <span className="capitalize">Emotional Response</span>
                       </div>
@@ -473,19 +516,6 @@ export function Chatbot() {
             </Button>
           </div>
         </Card>
-      ) : (
-        <Button
-          onClick={() => setIsOpen(true)}
-          size="icon"
-          className="h-12 w-12 rounded-full shadow-lg bg-gradient-to-r from-military to-military-light relative"
-        >
-          <MessageCircle className="h-6 w-6" />
-          {userEmotionalState !== 'neutral' && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full flex items-center justify-center">
-              {getEmotionIcon(userEmotionalState)}
-            </span>
-          )}
-        </Button>
       )}
     </div>
   );
