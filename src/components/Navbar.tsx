@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown, Bell, User, LogOut, Globe, UserCircle, LifeBuoy } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, User, LogOut, Globe, UserCircle, LifeBuoy, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   NavigationMenu,
@@ -165,7 +165,38 @@ const Navbar = () => {
             </NavigationMenuList>
           </NavigationMenu>
           
-          <Link to="/report-concern" className={`nav-link ${isActive('/report-concern') ? 'active' : ''}`}>Contact</Link>
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className={`nav-link bg-transparent ${isActive('/report-concern') ? 'active' : ''}`}>Contact</NavigationMenuTrigger>
+                <NavigationMenuContent className="bg-[#1A1A1A]/95 border-[#333333] backdrop-blur-md min-w-[220px]">
+                  <ul className="p-2 space-y-1">
+                    <li className="w-full">
+                      <Link 
+                        to="/report-concern" 
+                        className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Report Concern
+                      </Link>
+                    </li>
+                    <li className="w-full">
+                      <Link 
+                        to="/community-space" 
+                        className="block w-full px-3 py-2 text-white hover:bg-[#333333] rounded-md transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          Community Space
+                        </div>
+                      </Link>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
 
         {/* Auth Buttons or User Menu */}
@@ -313,7 +344,36 @@ const Navbar = () => {
               </div>
             </div>
             
-            <Link to="/report-concern" className={`nav-link ${isActive('/report-concern') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+            <div className="relative">
+              <button className={`nav-link flex items-center w-full justify-between ${isActive('/report-concern') ? 'active' : ''}`} onClick={(e) => {
+                e.preventDefault();
+                const submenu = e.currentTarget.nextElementSibling;
+                if (submenu) {
+                  submenu.classList.toggle('hidden');
+                }
+              }}>
+                Contact <ChevronDown className="ml-1 h-4 w-4" />
+              </button>
+              <div className="hidden pl-4 pt-2 pb-1 space-y-2">
+                <Link 
+                  to="/report-concern" 
+                  className="block w-full text-white/80 hover:text-white py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Report Concern
+                </Link>
+                <Link 
+                  to="/community-space" 
+                  className="block w-full text-white/80 hover:text-white py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-2" />
+                    Community Space
+                  </div>
+                </Link>
+              </div>
+            </div>
             
             {/* Language Selector for Mobile */}
             <div className="py-2">

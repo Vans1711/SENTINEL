@@ -23,6 +23,7 @@ import LegacyWall from "./pages/LegacyWall";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ChatbotProvider } from "./components/ChatbotProvider";
 import LifeNavigator from "./pages/Family/LifeNavigator";
+import CommunitySpace from "./pages/CommunitySpace";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/welfare-map" element={<Navigate to="/families/welfare-map" replace />} />
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/report-concern" element={<ReportConcern />} />
+              <Route path="/community-space" element={<CommunitySpace />} />
               
               {/* Resource Routes */}
               <Route path="/resources/educational-support" element={<EducationalSupport />} />
