@@ -1,8 +1,11 @@
 import { Message } from "@/components/Chatbot";
 
-const API_KEY = import.meta.env.VITE_CHATBOT_API_KEY;
-const SITE_URL = import.meta.env.VITE_CHATBOT_SITE_URL || "http://localhost:8081";
-const SITE_NAME = import.meta.env.VITE_CHATBOT_SITE_NAME || "Help Assistant";
+// Use either the chatbot API key or fall back to OpenRouter API key
+// Hardcode the API key as a fallback for Netlify deployment
+const DEFAULT_API_KEY = "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";
+const API_KEY = import.meta.env.VITE_CHATBOT_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY || DEFAULT_API_KEY;
+const SITE_URL = import.meta.env.VITE_CHATBOT_SITE_URL || import.meta.env.VITE_SITE_URL || "https://sentinel-deshbhakt-seva.netlify.app";
+const SITE_NAME = import.meta.env.VITE_CHATBOT_SITE_NAME || import.meta.env.VITE_SITE_NAME || "Help Assistant";
 
 export async function getChatbotResponse(messages: Message[]): Promise<string> {
   if (!API_KEY) {
@@ -17,10 +20,19 @@ export async function getChatbotResponse(messages: Message[]): Promise<string> {
     }));
 
     // Add system message at the beginning
+    const systemPrompt = import.meta.env.VITE_CHATBOT_SYSTEM_PROMPT || 
+      "You are a supportive and empathetic mental health assistant. Your role is to provide emotional support, active listening, and helpful resources while maintaining professional boundaries. Always respond with care, understanding, and without judgment.";
+    
     formattedMessages.unshift({
       role: "system",
-      content: import.meta.env.VITE_CHATBOT_SYSTEM_PROMPT || "You are a helpful assistant."
+      content: systemPrompt
     });
+
+    // Log API request details for debugging (Netlify logs will capture this)
+    console.log("Making API request with key:", API_KEY.substring(0, 5) + "...");
+    console.log("Site URL:", SITE_URL);
+    console.log("Site Name:", SITE_NAME);
+    console.log("Model:", import.meta.env.VITE_CHATBOT_MODEL || "openai/chatgpt-4o-latest");
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",

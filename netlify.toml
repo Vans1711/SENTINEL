@@ -1,9 +1,20 @@
 [build]
-  command = "npm run build"
+  command = "npm run build:netlify"
   publish = "dist"
   
 [build.environment]
   NODE_VERSION = "18"
+  # Enable OpenRouter API variables
+  VITE_CHATBOT_API_KEY = "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"
+  VITE_OPENROUTER_API_KEY = "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"
+  VITE_CHATBOT_MODEL = "openai/chatgpt-4o-latest"
+  VITE_CHATBOT_TEMPERATURE = "0.7"
+  VITE_CHATBOT_MAX_TOKENS = "150"
+  VITE_CHATBOT_SITE_URL = "https://sentinel-deshbhakt-seva.netlify.app"
+  VITE_SITE_URL = "https://sentinel-deshbhakt-seva.netlify.app"
+  VITE_CHATBOT_SITE_NAME = "Help Assistant"
+  VITE_SITE_NAME = "Help Assistant"
+  VITE_CHATBOT_SYSTEM_PROMPT = "You are a supportive and empathetic mental health assistant. Your role is to provide emotional support, active listening, and helpful resources while maintaining professional boundaries. Always respond with care, understanding, and without judgment."
 
 [[redirects]]
   from = "/*"
