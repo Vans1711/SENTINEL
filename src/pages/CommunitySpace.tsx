@@ -15,11 +15,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const CommunitySpace = () => {
   // Community forum user data
   const communityUsers = [
-    { name: "Hariom Singh", role: "Verified Member", avatar: "HS" },
-    { name: "Sneha Sharma", role: "Verified Member", avatar: "SS" },
-    { name: "Tushar Verma", role: "Support Volunteer", avatar: "TV" },
-    { name: "Kaif Khan", role: "Verified Member", avatar: "KK" },
-    { name: "Vanshika Gupta", role: "Support Admin", avatar: "VG" },
+    { name: "Hariom Gupta", role: "Verified Member", avatar: "HG" },
+    { name: "Sneha Negi", role: "Verified Member", avatar: "SN" },
+    { name: "Tushar Yadav", role: "Verified Member", avatar: "TY" },
+    { name: "Mohammad Kaif", role: "Verified Member", avatar: "MK" },
+    { name: "Vanshika Tyagi", role: "Verified Member", avatar: "VT" }
   ];
 
   // Sample forum threads
@@ -27,25 +27,25 @@ const CommunitySpace = () => {
     {
       id: "thread1",
       type: "Ask a Question",
-      title: "School admission process in Delhi for martyrs' children",
-      category: "Education",
-      region: "Delhi",
+      title: "Support for children's education for martyrs of recent border clash",
+      category: "Education Support",
+      region: "North India",
       author: communityUsers[0],
       replies: 12,
       lastActivity: "2 hours ago",
-      content: "My children need to be enrolled in a school in Delhi. Are there any special provisions for martyr families during the admission process? What documents would I need to provide?",
+      content: "My husband was martyred in the recent border clash. We have two children, ages 8 and 12. What educational support programs are available for them? Has anyone here accessed the PM scholarship scheme?",
       responses: [
         {
           author: communityUsers[2],
-          content: "Yes, there are special quotas in many schools for children of martyrs. You'll need to provide your Family ID card, the martyr certificate, and transfer certificate from previous school if applicable.",
+          content: "Hariom Gupta, I'm truly sorry for your loss. The PM scholarship scheme is excellent - my children are benefiting from it. The application process is straightforward but time-sensitive. I'd be happy to guide you through it.",
           timestamp: "1 hour ago",
-          helpful: 5
+          helpful: 15
         },
         {
-          author: communityUsers[3],
-          content: "I went through this process last year. Delhi govt schools have a straightforward process, but you should apply early. I can share my experience in detail if you'd like.",
+          author: communityUsers[4],
+          content: "In addition to what Tushar Yadav mentioned, check with your local Zila Sainik Board. They helped us tremendously with both paperwork and connecting to schools that reserve seats for martyrs' children.",
           timestamp: "30 minutes ago",
-          helpful: 3
+          helpful: 12
         }
       ]
     },
@@ -62,7 +62,7 @@ const CommunitySpace = () => {
       responses: [
         {
           author: communityUsers[4],
-          content: "Thank you for sharing this detailed experience, Sneha. Your timeline is very helpful for others going through the same process. We'll add this to our resources.",
+          content: "Thank you for sharing this detailed experience, Sneha Negi. Your timeline is very helpful for others going through the same process. We'll add this to our resources.",
           timestamp: "22 hours ago",
           helpful: 8
         }
@@ -81,7 +81,7 @@ const CommunitySpace = () => {
       responses: [
         {
           author: communityUsers[2],
-          content: "The Armed Forces has a dedicated child psychology unit that offers free services. I'll send you the contact details privately.",
+          content: "The Armed Forces has a dedicated child psychology unit that offers free services. I'll send you the contact details privately, Mohammad Kaif.",
           timestamp: "3 days ago",
           helpful: 10
         },

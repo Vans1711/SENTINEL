@@ -1,10 +1,46 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserProfile, Task } from './index';
-import { Users, Calendar, CheckCircle2, Clipboard } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Users, 
+  Shield, 
+  Clock, 
+  GraduationCap, 
+  FileText, 
+  Calendar, 
+  Bell, 
+  User,
+  ChevronRight,
+  LogOut,
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  Share2,
+  Download,
+  Clipboard,
+} from 'lucide-react';
+import { UserProfile, Task } from './index';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface FamilyDashboardProps {
   profile: UserProfile;
@@ -18,207 +54,386 @@ const FamilyDashboard: React.FC<FamilyDashboardProps> = ({
   voiceGuidance
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [sharePin, setSharePin] = useState('');
 
-  // Voice guidance effect
-  useEffect(() => {
-    if (voiceGuidance) {
-      try {
-        const message = t('life_navigator.dashboard.voice_guidance', 'This is your family dashboard. Here you can see an overview of your family profile and task progress.');
-        const utterance = new SpeechSynthesisUtterance(message);
-        window.speechSynthesis.speak(utterance);
-      } catch (error) {
-        console.error("Speech synthesis failed:", error);
-      }
+  // Generate a random 6-digit PIN for sharing access
+  const generateSharePin = () => {
+    const pin = Math.floor(100000 + Math.random() * 900000).toString();
+    setSharePin(pin);
+    setShowShareDialog(true);
+  };
+
+  // Calculate progress percentages
+  const getProgressPercentage = (category: string): number => {
+    const categoryTasks = tasks.filter(task => task.category === category);
+    if (categoryTasks.length === 0) return 0;
+    
+    const completedTasks = categoryTasks.filter(task => task.status === 'completed');
+    return Math.round((completedTasks.length / categoryTasks.length) * 100);
+  };
+
+  // Get counts for summary
+  const counts = {
+    pendingTasks: tasks.filter(task => task.status !== 'completed').length,
+    completedTasks: tasks.filter(task => task.status === 'completed').length,
+    upcomingDeadlines: tasks.filter(task => 
+      task.status !== 'completed' && 
+      task.deadline && 
+      new Date(task.deadline) > new Date() && 
+      new Date(task.deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    ).length
+  };
+
+  // Format date string
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'No date';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-IN', { 
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric' 
+      });
+    } catch (e) {
+      return 'Invalid date';
     }
-  }, [voiceGuidance, t]);
+  };
 
-  // Calculate task statistics
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.status === 'completed').length;
-  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
-  // Group tasks by category
-  const tasksByCategory = tasks.reduce((acc, task) => {
-    if (!acc[task.category]) {
-      acc[task.category] = [];
-    }
-    acc[task.category].push(task);
-    return acc;
-  }, {} as Record<string, Task[]>);
+  // Capitalize the first letter of a string
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  // Calculate task completion percentage
+  const getTaskCompletionPercentage = () => {
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.status === 'completed').length;
+    return Math.round((completedTasks / totalTasks) * 100);
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold flex items-center">
-          <Users className="mr-2 h-6 w-6 text-military" />
-          {t('life_navigator.dashboard.title', 'Family Dashboard')}
-        </h2>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-semibold flex items-center">
+            <Users className="mr-2 h-6 w-6 text-military" />
+            {t('life_navigator.dashboard.title', 'Family Dashboard')}
+          </h2>
+          <p className="text-white/70 text-sm">
+            {t('life_navigator.dashboard.welcome', 'Welcome')} {profile.name}, {t('life_navigator.dashboard.here_is_your_overview', 'here is your family support overview')}
+          </p>
+        </div>
+
+        <div className="flex space-x-3">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="border-military/50 text-military"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#1A1A1A] border-[#2D3748]">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Your profile data will remain saved on this device.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-[#2D3748] text-white hover:bg-[#3D4758]">Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  className="bg-military text-white hover:bg-military-light"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
-      {/* Family Profile Card */}
+      {/* Personal Info Summary */}
       <Card className="bg-[#1A1A1A]/30 border-[#2D3748]">
-        <CardHeader>
-          <CardTitle className="text-xl flex items-center">
-            <Users className="mr-2 h-5 w-5 text-military" />
-            {t('life_navigator.dashboard.family_profile', 'Family Profile')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-white/70 text-sm mb-1">
-                {t('life_navigator.dashboard.member_name', 'Member Name')}
-              </h3>
-              <p className="text-white font-medium">{profile.name || 'Not specified'}</p>
-            </div>
-            <div>
-              <h3 className="text-white/70 text-sm mb-1">
-                {t('life_navigator.dashboard.relationship', 'Relationship')}
-              </h3>
-              <p className="text-white font-medium capitalize">{profile.relationship || 'Not specified'}</p>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-[#2D3748]">
-            <h3 className="text-white/70 text-sm mb-2">
-              {t('life_navigator.dashboard.martyr_details', 'Martyr Details')}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-white/70 text-sm mb-1">
-                  {t('life_navigator.dashboard.martyr_name', 'Name')}
-                </h3>
-                <p className="text-white font-medium">{profile.martyr?.name || 'Not specified'}</p>
-              </div>
-              <div>
-                <h3 className="text-white/70 text-sm mb-1">
-                  {t('life_navigator.dashboard.martyr_rank', 'Rank')}
-                </h3>
-                <p className="text-white font-medium">{profile.martyr?.rank || 'Not specified'}</p>
-              </div>
-              <div>
-                <h3 className="text-white/70 text-sm mb-1">
-                  {t('life_navigator.dashboard.force', 'Force')}
-                </h3>
-                <p className="text-white font-medium">{profile.martyr?.force || 'Not specified'}</p>
-              </div>
-              <div>
-                <h3 className="text-white/70 text-sm mb-1">
-                  {t('life_navigator.dashboard.date_of_martyrdom', 'Date of Martyrdom')}
-                </h3>
-                <p className="text-white font-medium">{profile.martyr?.dateOfMartyrdom || 'Not specified'}</p>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-6 items-center">
+            <div className="shrink-0">
+              <div className="w-20 h-20 bg-military/20 rounded-full flex items-center justify-center text-2xl font-bold">
+                {profile.name?.substring(0, 2).toUpperCase() || 'U'}
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Task Progress Overview */}
-      <Card className="bg-[#1A1A1A]/30 border-[#2D3748]">
-        <CardHeader>
-          <CardTitle className="text-xl flex items-center">
-            <Clipboard className="mr-2 h-5 w-5 text-military" />
-            {t('life_navigator.dashboard.task_progress', 'Task Progress')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex-1 w-full">
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-white/70">
-                  {t('life_navigator.dashboard.overall_progress', 'Overall Progress')}
-                </span>
-                <span className="text-sm text-white font-medium">{completionPercentage}%</span>
-              </div>
-              <Progress value={completionPercentage} className="h-2 bg-[#1A1A1A]/50" />
-            </div>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Badge variant="outline" className="border-white/20 text-white bg-[#1A1A1A]/50">
-                {t('life_navigator.dashboard.total_tasks', 'Total')}: {totalTasks}
-              </Badge>
-              <Badge variant="outline" className="border-green-600/40 text-green-400 bg-green-900/10">
-                {t('life_navigator.dashboard.completed', 'Completed')}: {completedTasks}
-              </Badge>
-              <Badge variant="outline" className="border-blue-600/40 text-blue-400 bg-blue-900/10">
-                {t('life_navigator.dashboard.pending', 'Pending')}: {tasks.filter(t => t.status !== 'completed').length}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Tasks by Category */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-            {Object.entries(tasksByCategory).map(([category, categoryTasks]) => {
-              const categoryCompletedTasks = categoryTasks.filter(task => task.status === 'completed').length;
-              const categoryCompletionPercentage = Math.round((categoryCompletedTasks / categoryTasks.length) * 100);
-              
-              return (
-                <Card key={category} className="bg-[#1A1A1A]/50 border-[#2D3748]">
-                  <CardContent className="p-4">
-                    <h3 className="text-sm font-medium mb-2 capitalize">{category} Tasks</h3>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs text-white/70">{categoryCompletedTasks}/{categoryTasks.length}</span>
-                      <span className="text-xs text-white/70">{categoryCompletionPercentage}%</span>
-                    </div>
-                    <Progress value={categoryCompletionPercentage} className="h-1.5 bg-[#1A1A1A]/50" />
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card className="bg-[#1A1A1A]/30 border-[#2D3748]">
-        <CardHeader>
-          <CardTitle className="text-xl flex items-center">
-            <Calendar className="mr-2 h-5 w-5 text-military" />
-            {t('life_navigator.dashboard.recent_activity', 'Recent Activity')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {tasks.length > 0 ? (
-            <div className="space-y-4">
-              {tasks
-                .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-                .slice(0, 5)
-                .map(task => (
-                  <div key={task.id} className="flex items-start gap-3 pb-3 border-b border-[#2D3748] last:border-0">
-                    <div className={`p-2 rounded-full 
-                      ${task.status === 'completed' ? 'bg-green-900/20' : 
-                        task.status === 'in-progress' ? 'bg-blue-900/20' : 
-                        task.status === 'pending' ? 'bg-amber-900/20' : 'bg-slate-900/20'}`}>
-                      {task.status === 'completed' ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-400" />
-                      ) : (
-                        <Clipboard className="h-4 w-4 text-white/50" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <h4 className="text-sm font-medium">{task.title}</h4>
-                        <span className="text-xs text-white/50">
-                          {new Date(task.updatedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-xs text-white/70 mt-1">{task.description.substring(0, 60)}...</p>
+            
+            <div className="flex-grow">
+              <h3 className="text-xl font-medium">{profile.name || 'User'}</h3>
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                <div className="p-3 rounded-lg bg-[#1A1A1A]/50 border border-[#2D3748] text-center">
+                  <div className="text-xs text-white/70 text-center">Relationship</div>
+                  <div className="font-medium text-white mt-1">
+                    {profile.relationship ? capitalizeFirstLetter(profile.relationship) : 'Not specified'}
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg bg-[#1A1A1A]/50 border border-[#2D3748] text-center">
+                  <div className="text-xs text-white/70 text-center">Force</div>
+                  <div className="font-medium text-white mt-1">
+                    {profile.martyr?.force || 'Not specified'}
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg bg-[#1A1A1A]/50 border border-[#2D3748] text-center">
+                  <div className="text-xs text-white/70 text-center">Martyrdom Date</div>
+                  <div className="font-medium text-white mt-1">
+                    {profile.martyr?.dateOfMartyrdom 
+                      ? formatDate(profile.martyr.dateOfMartyrdom)
+                      : 'Not specified'}
+                  </div>
+                </div>
+                {profile.identification?.idType && profile.identification.idType !== "None" && (
+                  <div className="p-3 rounded-lg bg-[#1A1A1A]/50 border border-[#2D3748] text-center">
+                    <div className="text-xs text-white/70 text-center">ID Type</div>
+                    <div className="font-medium text-white mt-1">
+                      {profile.identification?.idType || 'Not specified'}
                     </div>
                   </div>
-                ))}
+                )}
+              </div>
+              
+              {/* Support Status */}
+              <div className="bg-[#1A1A1A]/30 p-4 rounded-lg border border-[#2D3748] mb-6">
+                <h3 className="text-lg font-medium mb-3">Support Status</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Clipboard className="h-5 w-5 text-military mr-2" />
+                      <span>Tasks Completion</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-[#1A1A1A]/50 rounded-full mr-3">
+                        <div 
+                          className="h-2 bg-gradient-to-r from-military to-military-light rounded-full" 
+                          style={{ width: `${getTaskCompletionPercentage()}%` }}
+                        />
+                      </div>
+                      <span className="text-sm">{getTaskCompletionPercentage()}%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Shield className="h-5 w-5 text-military mr-2" />
+                      <span>Service Access</span>
+                    </div>
+                    <Badge className="bg-green-700">
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Full Access
+                    </Badge>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-6">
-              <Calendar className="h-10 w-10 mx-auto text-white/30 mb-3" />
-              <h3 className="text-lg font-medium text-white/80">
-                {t('life_navigator.dashboard.no_activity', 'No recent activity')}
-              </h3>
-              <p className="text-white/60 mt-1">
-                {t('life_navigator.dashboard.activity_description', 'Your recent task updates will appear here')}
-              </p>
+            
+            <div className="shrink-0 space-y-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full border-military/50 text-military"
+                onClick={generateSharePin}
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Share Access
+              </Button>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Life Roadmap Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Card className="bg-[#1A1A1A]/30 border-military/30 h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5 text-military" />
+                Your Life Roadmap
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {profile.lifeRoadmap?.map((path, index) => (
+                <div key={index} className="bg-[#1A1A1A]/50 border border-[#2D3748] rounded-lg p-4">
+                  <h3 className="font-medium text-lg mb-2">{path.pathName}</h3>
+                  <p className="text-white/70 text-sm mb-4">{path.description}</p>
+                  
+                  <div className="space-y-3 mb-2">
+                    {path.steps.map((step, stepIndex) => (
+                      <div key={stepIndex} className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className={`w-2 h-2 rounded-full mr-2 ${
+                            step.status === 'completed' ? 'bg-green-500' : 
+                            step.status === 'in-progress' ? 'bg-blue-500' : 'bg-gray-500'
+                          }`} />
+                          <div>
+                            <span className="text-sm">{step.title}</span>
+                            {step.deadline && (
+                              <div className="flex items-center text-xs text-white/50 mt-0.5">
+                                <CalendarIcon className="h-3 w-3 mr-1" />
+                                {formatDate(step.deadline)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          step.status === 'completed' ? 'bg-green-900/30 text-green-400' : 
+                          step.status === 'in-progress' ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-900/30 text-gray-400'
+                        }`}>
+                          {step.status.replace('-', ' ')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    variant="link" 
+                    className="text-military p-0 h-auto mt-2 text-sm"
+                    onClick={() => {
+                      if (path.pathName.includes('Government')) {
+                        navigate('/family/life-navigator/government');
+                      } else if (path.pathName.includes('Education')) {
+                        navigate('/family/life-navigator/education');
+                      } else if (path.pathName.includes('Skill')) {
+                        navigate('/family/life-navigator/skill');
+                      }
+                    }}
+                  >
+                    View details →
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Progress Summary */}
+          <Card className="bg-[#1A1A1A]/30 border-[#2D3748]">
+            <CardHeader className="pb-2">
+              <CardTitle>Progress Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Pension & Documents</span>
+                  <span>{getProgressPercentage('pension')}%</span>
+                </div>
+                <Progress value={getProgressPercentage('pension')} className="h-2 bg-[#2D3748]" />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Education</span>
+                  <span>{getProgressPercentage('education')}%</span>
+                </div>
+                <Progress value={getProgressPercentage('education')} className="h-2 bg-[#2D3748]" />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Skills & Employment</span>
+                  <span>{getProgressPercentage('skill') + getProgressPercentage('job')}%</span>
+                </div>
+                <Progress value={(getProgressPercentage('skill') + getProgressPercentage('job')) / 2} className="h-2 bg-[#2D3748]" />
+              </div>
+              
+              <div className="pt-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-military/50 text-military"
+                  onClick={() => navigate('/family/life-navigator/timeline')}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  View All Tasks
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Upcoming Events */}
+          <Card className="bg-[#1A1A1A]/30 border-[#2D3748]">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center">
+                <Bell className="mr-2 h-5 w-5 text-military" />
+                Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {counts.upcomingDeadlines > 0 ? (
+                  <div className="bg-amber-900/20 border border-amber-800/30 rounded-lg p-3 text-sm">
+                    <p className="font-medium text-amber-400">Upcoming Deadlines</p>
+                    <p className="text-white/70 mt-1">You have {counts.upcomingDeadlines} task(s) due within the next 7 days</p>
+                  </div>
+                ) : (
+                  <div className="bg-green-900/20 border border-green-800/30 rounded-lg p-3 text-sm">
+                    <p className="font-medium text-green-400">No Upcoming Deadlines</p>
+                    <p className="text-white/70 mt-1">You have no immediate deadlines in the next 7 days</p>
+                  </div>
+                )}
+                
+                <div className="bg-[#1A1A1A]/50 border border-[#2D3748] rounded-lg p-3 text-sm">
+                  <p className="font-medium">Document Updates</p>
+                  <p className="text-white/70 mt-1">Remember to keep your documents up-to-date for smoother processing</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Download Report */}
+          <Card className="bg-[#1A1A1A]/30 border-[#2D3748]">
+            <CardContent className="p-4">
+              <Button variant="outline" className="w-full border-military/50 text-military">
+                <Download className="h-4 w-4 mr-2" />
+                Download Status Report
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Share Access Dialog */}
+      <AlertDialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <AlertDialogContent className="bg-[#1A1A1A] border-[#2D3748]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Share Dashboard Access</AlertDialogTitle>
+            <AlertDialogDescription>
+              Use this PIN to allow a trusted family member or support person to access your dashboard. This PIN will expire in 24 hours.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-center py-6">
+            <div className="bg-[#2D3748] rounded-lg px-8 py-4 font-mono text-xl tracking-widest">
+              {sharePin}
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              className="bg-military text-white hover:bg-military-light"
+              onClick={() => setShowShareDialog(false)}
+            >
+              Done
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

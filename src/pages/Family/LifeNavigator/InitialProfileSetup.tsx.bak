@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserProfile } from './index';
-import { UserCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { UserCircle, CheckCircle2, Shield, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -101,6 +101,21 @@ const InitialProfileSetup: React.FC<InitialProfileSetupProps> = ({
       newErrors['martyr.force'] = 'Force is required';
     }
     
+    // Identification validation
+    if (!formData.identification?.idType) {
+      newErrors['identification.idType'] = 'ID type is required';
+    }
+    
+    if (!formData.identification?.idNumber) {
+      newErrors['identification.idNumber'] = 'ID number is required';
+    }
+    
+    if (!formData.identification?.aadhaarNumber) {
+      newErrors['identification.aadhaarNumber'] = 'Aadhaar number is required';
+    } else if (!/^\d{12}$/.test(formData.identification.aadhaarNumber)) {
+      newErrors['identification.aadhaarNumber'] = 'Aadhaar number must be 12 digits';
+    }
+    
     if (!formData.challenges || formData.challenges.length === 0) {
       newErrors.challenges = 'Please select at least one challenge';
     }
@@ -116,12 +131,7 @@ const InitialProfileSetup: React.FC<InitialProfileSetupProps> = ({
       // Update profile with form data
       const updatedProfile = {
         ...formData,
-        isProfileComplete: true,
-        identification: {
-          idType: "None",
-          idNumber: "None",
-          aadhaarNumber: "000000000000"
-        }
+        isProfileComplete: true
       };
       onProfileUpdate(updatedProfile);
       
@@ -147,6 +157,15 @@ const InitialProfileSetup: React.FC<InitialProfileSetupProps> = ({
     { id: 'medical', label: 'Medical Support Needed' },
     { id: 'legal', label: 'Legal Assistance Required' },
     { id: 'finance', label: 'Financial Support Needed' },
+  ];
+
+  // ID Types
+  const idTypes = [
+    'Martyr Family ID Card',
+    'CSD Card',
+    'Ex-Servicemen Card',
+    'Dependent Card',
+    'Other Military ID'
   ];
 
   return (
@@ -340,6 +359,71 @@ const InitialProfileSetup: React.FC<InitialProfileSetupProps> = ({
               value={formData.martyr?.dateOfMartyrdom || ''}
               onChange={(e) => handleChange('martyr', { ...(formData.martyr || {}), dateOfMartyrdom: e.target.value })}
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[#1A1A1A]/30 border-[#2D3748]">
+        <CardHeader>
+          <CardTitle className="text-xl">
+            {t('life_navigator.profile.identification', 'Basic Identification')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="idType" className="flex items-center">
+              ID Type
+              <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Select 
+              value={formData.identification?.idType || ''} 
+              onValueChange={(value) => handleChange('identification.idType', value)}
+            >
+              <SelectTrigger 
+                id="idType" 
+                className={`bg-[#1A1A1A]/50 border-[#2D3748] ${errors['identification.idType'] ? 'border-red-500' : ''}`}
+              >
+                <SelectValue placeholder="Select ID type" />
+              </SelectTrigger>
+              <SelectContent>
+                {idTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors['identification.idType'] && <p className="text-sm text-red-500">{errors['identification.idType']}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="idNumber" className="flex items-center">
+              ID Number
+              <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input
+              id="idNumber"
+              placeholder="Enter your ID number"
+              className={`bg-[#1A1A1A]/50 border-[#2D3748] ${errors['identification.idNumber'] ? 'border-red-500' : ''}`}
+              value={formData.identification?.idNumber || ''}
+              onChange={(e) => handleChange('identification.idNumber', e.target.value)}
+            />
+            {errors['identification.idNumber'] && <p className="text-sm text-red-500">{errors['identification.idNumber']}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="aadhaarNumber" className="flex items-center">
+              Aadhaar Number
+              <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <Input
+              id="aadhaarNumber"
+              placeholder="12-digit Aadhaar number"
+              className={`bg-[#1A1A1A]/50 border-[#2D3748] ${errors['identification.aadhaarNumber'] ? 'border-red-500' : ''}`}
+              value={formData.identification?.aadhaarNumber || ''}
+              onChange={(e) => handleChange('identification.aadhaarNumber', e.target.value)}
+              maxLength={12}
+            />
+            <p className="text-xs text-white/60">Used only for identification purposes</p>
+            {errors['identification.aadhaarNumber'] && <p className="text-sm text-red-500">{errors['identification.aadhaarNumber']}</p>}
           </div>
         </CardContent>
       </Card>
