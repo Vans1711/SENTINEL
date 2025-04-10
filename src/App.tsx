@@ -24,6 +24,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ChatbotProvider } from "./components/ChatbotProvider";
 import LifeNavigator from "./pages/Family/LifeNavigator";
 import CommunitySpace from "./pages/CommunitySpace";
+import MartyrFamilyList from "./pages/MartyrFamilyList";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/volunteer" element={<Volunteer />} />
               <Route path="/report-concern" element={<ReportConcern />} />
               <Route path="/community-space" element={<CommunitySpace />} />
+              <Route path="/martyr-family-list" element={<MartyrFamilyList />} />
               
               {/* Resource Routes */}
               <Route path="/resources/educational-support" element={<EducationalSupport />} />
